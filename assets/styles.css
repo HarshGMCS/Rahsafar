@@ -1,0 +1,114 @@
+.bg-teal{
+            background:#28B4A4;
+        }
+
+        label{
+            font-size:14px;
+            color:#fff;
+        }
+
+        .btn-orange, .btn-orange:hover{
+            background:#E48E45;
+            color:#fff;
+        }
+
+        .form-check-input:checked{
+            background-color: #E48E45;
+            border-color:#E48E45;
+        }
+
+        .pos-rel{
+            position: relative;
+        }
+
+        .pos-abs{
+            position: absolute;
+            left:45px;
+            top: 40px;
+            background: #fff;
+            padding:10px;
+            border-radius: 12px;
+            z-index:9999;
+            width: 100%;
+            max-width: 85%;
+            height:150px;
+            overflow-y:scroll;
+        }
+
+        .pos-abs ul{
+            list-style: none;
+            padding-left: 5px;
+        }
+
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            margin: 0; 
+        }
+
+
+        .flight-card .airport-name h4{
+            font-size:18px;
+        }
+
+
+        .flight-card .airport-name h6{
+            font-size:14px;
+        }
+
+
+
+        .flight-card .airport-progress .stop{
+            font-size: 14px;
+        }
+
+
+
+        .flight-card .price h4{
+            font-size: 18px;
+        }
+
+
+        .flight-card .stop{
+            border-top: 4px solid #28B4A4;
+            padding-top: 5px;
+        }
+
+
+        .filter-block label{
+            font-size: 14px;
+        }
+
+
+        .price-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+
+        #minPriceLabel,
+        #maxPriceLabel {
+            font-size: 12px;
+        }
+
+        #currentPriceLabel {
+            display: block;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+
+
+        .border-selected{
+            border:2px solid #28B4A4 !important;
+        }
+
+
+        .btn-continue-container{
+            position: fixed;
+            bottom:40px;
+            left: 50%;
+            margin-left:-80px;
+        }

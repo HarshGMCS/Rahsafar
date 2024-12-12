@@ -1,0 +1,576 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Booking Form</title>
+    <!-- Load Vue.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.1/dist/vue.global.prod.js"></script>
+    <!-- Load datepicker library -->
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Load Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="assets/styles.css">
+</head>
+<body>
+<div id="app" class="container-fluid px-0 mx-0">
+
+
+
+    <form @submit.prevent="submitForm" class="bg-teal p-4">
+
+        <div class="container">
+        <div class="mb-3">
+            
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" v-model="tripType" value="1" id="oneWay">
+                <label class="form-check-label" for="oneWay">One Way</label>
+            </div>
+
+            
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" v-model="tripType" value="2" id="roundTrip" @change="handleTripTypeChange">
+                <label class="form-check-label" for="roundTrip">Round Trip</label>
+            </div>
+            
+        </div>
+
+
+        <div class="row">
+
+        <div class="col-lg-3">
+            <label for="from" class="form-label fw-semibold">Flying From</label>
+            <div class="input-group pos-rel mb-3">
+                
+                <span class="input-group-text" id="basic-addon1"><i class="fa-solid fa-plane-departure"></i></span>
+                <input type="text" v-model="from" id="from" @input="getSuggestions('from')" class="form-control" aria-describedby="basic-addon1" @focus="from = ''">
+                <div v-if="fromSuggestions.length" class="pos-abs">
+                <ul >
+                    <li v-for="suggestion in fromSuggestions" :key="suggestion.city_code" @click="selectFrom(suggestion)">
+                         {{ suggestion.city_name }}, {{ suggestion.country_name }} ({{ suggestion.city_code }})
+                    </li>
+                </ul>
+                </div>
+            </div>
+
+        </div>
+
+
+
+        <div class="col-lg-3">
+            <label for="to" class="form-label fw-semibold">Flying To</label>
+            <div class="input-group pos-rel mb-3">
+                
+                <span class="input-group-text" id="basic-addon2"><i class="fa-solid fa-plane-arrival"></i></span>
+                <input type="text" v-model="to" id="to" class="form-control" @input="getSuggestions('to')" aria-describedby="basic-addon2" @focus="to = ''">
+                <div v-if="toSuggestions.length" class="pos-abs">
+                <ul >
+                    <li v-for="suggestion in toSuggestions" :key="suggestion.city_code" @click="selectTo(suggestion)" >
+                        
+                         {{ suggestion.city_name }}, {{ suggestion.country_name }} ({{ suggestion.city_code }})
+                       
+                    </li>
+                </ul>
+                </div>
+            </div>
+
+        </div>
+
+        
+        <div class="col-lg-3">
+
+            <label for="departDate" class="form-label fw-semibold">Depart Date</label>
+            <div class="input-group mb-3">
+                <span class="input-group-text" id="basic-addon3"><i class="fa-solid fa-calendar-days"></i></span>
+                <input type="text" v-model="departDate" id="departDate" class="form-control datepicker" aria-describedby="basic-addon3">
+            </div>
+        </div>
+
+
+
+        <div class="col-lg-3" v-if="tripType == 2">
+            <label for="returnDate" class="form-label fw-semibold">Return Date</label>
+            <div  class="input-group mb-3">
+                <span class="input-group-text" id="basic-addon4"><i class="fa-solid fa-calendar-days"></i></span>
+                <input type="text" v-model="returnDate" id="returnDate" class="form-control datepicker" aria-describedby="basic-addon4">
+            </div>
+
+        </div>
+
+        </div><!-- End of Row -->
+
+
+        <div class="row">
+
+
+        <div class="col-lg-2 col-6">
+
+        <div class="mb-3">
+            <label for="adults" class="form-label fw-semibold">Adults</label>
+            <div class="input-group">
+                <button class="btn btn-light fw-semibold" type="button" @click="adultsDecrement">-</button>
+                <input type="number"  v-model="adults" id="adults" min="1" class="form-control input-spinner text-center" data-bs-target="#adults">
+                <button class="btn btn-light fw-semibold" type="button" @click="adultsIncrement">+</button>
+            </div>
+        </div>
+
+        </div>
+
+
+        <div class="col-lg-2 col-6">
+
+        <div class="mb-3">
+            <label for="adults" class="form-label fw-semibold">Childrens</label>
+            <div class="input-group">
+                <button class="btn btn-light fw-semibold" type="button" @click="childrensDecrement">-</button>
+                <input type="number" v-model="childrens" id="childrens" min="0" class="form-control input-spinner text-center" data-bs-target="#childrens">
+                <button class="btn btn-light fw-semibold" type="button" @click="childrensIncrement">+</button>
+            </div>
+        </div>
+
+        </div>
+
+
+
+        <div class="col-lg-2 col-6">
+
+        <div class="mb-3">
+            <label for="adults" class="form-label fw-semibold">Infants</label>
+            <div class="input-group">
+                <button class="btn btn-light fw-semibold" type="button" @click="infantsDecrement">-</button>
+                <input type="number" v-model="infants" id="infants" min="0" class="form-control input-spinner text-center" data-bs-target="#infants" :max="adults">
+                <button class="btn btn-light fw-semibold" type="button" @click="infantsIncrement">+</button>
+            </div>
+        </div>
+
+        </div>
+
+
+
+        <div class="col-lg-3 col-6">
+            <div class="mb-3">
+            <label for="classType" class="form-label fw-semibold">Class</label>
+            <select v-model="classType" id="classType" class="form-select">
+                <option value="1">All</option>
+                <option value="2">Economy</option>
+                <option value="3">Premium Economy</option>
+                 <option value="4">Business</option>
+                  <option value="5">Premium Business</option>
+                   <option value="6">First</option>
+
+            </select>
+             </div>
+        </div>
+
+
+       
+
+
+
+        <div class="col-lg-2 col-6 d-flex align-items-end">
+
+            <div class="mb-3">
+                <button type="submit" class="btn btn-orange fw-semibold">Search Flights</button>
+            </div>
+
+        </div>
+
+        </div>
+
+        </div>
+    </form>
+    
+
+
+    <div class="container my-5">
+        <div class="text-center" v-if="loading">
+            <img src="images/loader.gif" />
+        </div>
+
+
+        <div class="row" v-if="showFlights">
+            
+            <div class="col-lg-12">
+            <div v-for="(flight,index) in flights" class="card border-0 shadow p-3 flight-card mb-4" v-if="flights.length > 0">
+                                
+                                <div class="row align-items-center">
+                                    <div class="col-md-2 text-center">
+                                        <div class="logo-sec mt-3">
+                                            <img :src="'images/airlines/'+ flight.Segments[0][0].Airline.AirlineCode +'.webp'" class="img-fluid" alt="">
+                                            <p class="title mt-2">{{ flight.Segments[0][0].Airline.AirlineName}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 text-center">
+                                        <div class="row airport-part d-flex justify-content-between align-items-center">
+                                            <div class="col-4 airport-name">
+                                                <h4>{{ convertDTT(flight.Segments[0][0].Origin.DepTime)}}</h4>
+                                                <h6>{{flight.Segments[0][0].Origin.Airport.AirportName}}, {{flight.Segments[0][0].Origin.Airport.CityName}}, {{flight.Segments[0][0].Origin.Airport.CountryName}}</h6>
+                                            </div>
+                                            <div class="col-4 airport-progress px-3">
+                                                
+                                                <div class="mb-2">
+
+                                                     <strong>{{ convertMTHM(flight.Segments[0].length > 1 ? flight.Segments[0][flight.Segments[0].length - 1].AccumulatedDuration : flight.Segments[0][0].Duration) }}</strong>
+                                                     
+
+                                                </div>
+                                                <div class="stop">
+                                                   
+                                                    {{ flight.Segments[0].length - 1 === 0 ? 'Non Stop' : (flight.Segments[0].length - 1) + ((flight.Segments[0].length - 1) > 1 ? ' Stops' : ' Stop') }}
+                                                   
+                                                    
+                                                </div>
+                                            </div>
+                                            <div class="col-4 airport-name arrival">
+                                                <h4>{{ convertDTT(flight.Segments[0][flight.Segments[0].length - 1].Destination.ArrTime) }}</h4>
+                                                <h6>{{flight.Segments[0][flight.Segments[0].length - 1].Destination.Airport.AirportName}}, {{flight.Segments[0][flight.Segments[0].length - 1].Destination.Airport.CityName}}, {{flight.Segments[0][flight.Segments[0].length - 1].Destination.Airport.CountryName}}</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <div class="price">
+                                            <div>
+                                                <h4>INR {{ Math.ceil(flight.Fare.PublishedFare) }}</h4>
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <div class="book-flight">
+                                            <a :href="'details.php?id=' + index" class="btn btn-orange fw-bold">Book Now</a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                </div>
+
+
+            </div><!--end of column-->
+        </div>
+
+
+
+
+        <div class="row" v-if="showReturnFlights">
+            
+            <div class="col-lg-6">
+            <h4 class="mb-3">Journey</h4>
+            <div v-for="(flight,index) in flights1" class="card border-0 shadow p-3 flight-card mb-4" v-if="flights1.length > 0" :class="{ 'border border-selected': selectedIndexD === index }">
+                                
+                                <div class="row align-items-center">
+                                    <div class="col-md-2 text-center">
+                                        <div class="logo-sec mt-3">
+                                            <img :src="'images/airlines/'+ flight.Segments[0][0].Airline.AirlineCode +'.webp'" class="img-fluid" alt="">
+                                            <p class="title mt-2">{{ flight.Segments[0][0].Airline.AirlineName}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 text-center">
+                                        <div class="row airport-part d-flex justify-content-between align-items-center">
+                                            <div class="col-4 airport-name">
+                                                <h4>{{ convertDTT(flight.Segments[0][0].Origin.DepTime)}}</h4>
+                                                <h6>{{flight.Segments[0][0].Origin.Airport.CityName}}</h6>
+                                            </div>
+                                            <div class="col-4 airport-progress px-3">
+                                                
+                                                <div class="mb-2">
+
+                                                     <strong>{{ convertMTHM(flight.Segments[0].length > 1 ? flight.Segments[0][flight.Segments[0].length - 1].AccumulatedDuration : flight.Segments[0][0].Duration) }}</strong>
+                                                     
+
+                                                </div>
+                                                <div class="stop">
+                                                   
+                                                    {{ flight.Segments[0].length - 1 === 0 ? 'Non Stop' : (flight.Segments[0].length - 1) + ((flight.Segments[0].length - 1) > 1 ? ' Stops' : ' Stop') }}
+                                                   
+                                                    
+                                                </div>
+                                            </div>
+                                            <div class="col-4 airport-name arrival">
+                                                <h4>{{ convertDTT(flight.Segments[0][flight.Segments[0].length - 1].Destination.ArrTime) }}</h4>
+                                                <h6>{{flight.Segments[0][flight.Segments[0].length - 1].Destination.Airport.CityName}}</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <div class="price">
+                                            <div>
+                                                <h4>INR {{ Math.ceil(flight.Fare.PublishedFare) }}</h4>
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <div class="book-flight">
+                                            <button @click="selectedIndexD = index" class="btn btn-orange fw-bold">Select</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                </div>
+
+
+            </div><!--end of column-->
+
+            <div class="col-lg-6">
+            <h4 class="mb-3">Return Journey</h4>
+            <div v-for="(flight,index) in flights2" class="card border-0 shadow p-3 flight-card mb-4" v-if="flights2.length > 0" :class="{ 'border border-selected': selectedIndexA === index }">
+                                
+                                <div class="row align-items-center">
+                                    <div class="col-md-2 text-center">
+                                        <div class="logo-sec mt-3">
+                                            <img :src="'images/airlines/'+ flight.Segments[0][0].Airline.AirlineCode +'.webp'" class="img-fluid" alt="">
+                                            <p class="title mt-2">{{ flight.Segments[0][0].Airline.AirlineName}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 text-center">
+                                        <div class="row airport-part d-flex justify-content-between align-items-center">
+                                            <div class="col-4 airport-name">
+                                                <h4>{{ convertDTT(flight.Segments[0][0].Origin.DepTime)}}</h4>
+                                                <h6>{{flight.Segments[0][0].Origin.Airport.CityName}}</h6>
+                                            </div>
+                                            <div class="col-4 airport-progress px-3">
+                                                
+                                                <div class="mb-2">
+
+                                                     <strong>{{ convertMTHM(flight.Segments[0].length > 1 ? flight.Segments[0][flight.Segments[0].length - 1].AccumulatedDuration : flight.Segments[0][0].Duration) }}</strong>
+                                                     
+
+                                                </div>
+                                                <div class="stop">
+                                                   
+                                                    {{ flight.Segments[0].length - 1 === 0 ? 'Non Stop' : (flight.Segments[0].length - 1) + ((flight.Segments[0].length - 1) > 1 ? ' Stops' : ' Stop') }}
+                                                   
+                                                    
+                                                </div>
+                                            </div>
+                                            <div class="col-4 airport-name arrival">
+                                                <h4>{{ convertDTT(flight.Segments[0][flight.Segments[0].length - 1].Destination.ArrTime) }}</h4>
+                                                <h6>{{flight.Segments[0][flight.Segments[0].length - 1].Destination.Airport.CityName}}</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <div class="price">
+                                            <div>
+                                                <h4>INR {{ Math.ceil(flight.Fare.PublishedFare) }}</h4>
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <div class="book-flight">
+                                            <button @click="selectedIndexA = index" class="btn btn-orange fw-bold">Select</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                </div>
+
+
+            </div><!--end of column-->
+
+
+        </div>
+
+
+
+
+
+    </div>
+
+
+    <div class="text-center btn-continue-container" v-if="selectedIndexD !== null && selectedIndexA !== null">
+    <a :href="'details-ard.php?departure=' + selectedIndexD + '&arrival=' + selectedIndexA" class="btn btn-orange btn-continue fw-bold shadow">
+        Continue Booking
+    </a>
+</div>
+</div>
+
+<script>
+    const app = Vue.createApp({
+        data() {
+
+            const today = new Date();
+            // Calculate return date as 2 days ahead
+            const returnDate = new Date(today);
+            returnDate.setDate(returnDate.getDate() + 2);
+
+
+            return {
+                loading:false,
+                tripType: 1,
+                from: 'Delhi, India (DEL)',
+                to: 'Mumbai, India (BOM)',
+                departDate: today.toISOString().substr(0, 10),
+                returnDate: returnDate.toISOString().substr(0, 10),
+                adults: 1,
+                childrens: 0,
+                infants: 0,
+                classType:'1',
+                datepickerOptions: {
+                    dateFormat: 'Y-m-d',
+                    minDate: 'today'
+                },
+                fromSuggestions: [],
+                toSuggestions: [],
+                flights:[],
+                flights1:[],
+                flights2:[],
+                showFlights:false,
+                showReturnFlights:false,
+                selectedIndexD: null,
+                selectedIndexA: null,
+            };
+        },
+        mounted() {
+           
+
+            // Initialize datepicker for depart date
+            flatpickr('#departDate', this.datepickerOptions);
+
+           
+        },
+        
+
+        methods: {
+
+
+            adultsIncrement() {
+                this.adults++;
+            },
+            adultsDecrement() {
+                if (this.adults >= 1) {
+                    this.adults--;
+                }
+            },
+
+
+            childrensIncrement() {
+                this.childrens++;
+            },
+
+            childrensDecrement() {
+                if (this.childrens >= 1) {
+                    this.childrens--;
+                }
+            },
+
+
+            infantsIncrement() {
+                this.infants++;
+            },
+            infantsDecrement() {
+                if (this.infants >= 1) {
+                    this.infants--;
+                }
+            },
+
+
+            handleTripTypeChange() {
+                if (this.tripType == 2) {
+                    //console.log('done');
+                    flatpickr('#returnDate', this.datepickerOptions);
+                }
+            },
+
+
+             getSuggestions(field) {
+                const query = this[field];
+                if (!query) {
+                    this[field + 'Suggestions'] = [];
+                    return;
+                }
+                // Make AJAX request to PHP endpoint
+                axios.get('suggest.php', { params: { q: query } })
+                    .then(response => {
+                        this[field + 'Suggestions'] = response.data;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            },
+            selectFrom(suggestion) {
+                this.from =   suggestion.city_name + ', ' + suggestion.country_name + ' ('+ suggestion.city_code + ')';
+                this.fromSuggestions = [];
+            },
+            selectTo(suggestion) {
+                this.to =  suggestion.city_name + ', ' + suggestion.country_name + ' ('+ suggestion.city_code + ')';
+                this.toSuggestions = [];
+            },
+
+            convertMTHM(minutes) {
+              const hours = Math.floor(minutes / 60);
+              const remainingMinutes = minutes % 60;
+              return `${hours}h ${remainingMinutes}m`;
+            },
+
+            convertDTT(dateTimeString) {
+              const dateTime = new Date(dateTimeString);
+              const hours = dateTime.getHours().toString().padStart(2, '0'); // Get hours in 2-digit format
+              const minutes = dateTime.getMinutes().toString().padStart(2, '0'); // Get minutes in 2-digit format
+              return `${hours}:${minutes}`; // Combine hours and minutes with ":"
+            },
+
+            
+
+
+            submitForm() {
+               
+                this.loading = true;
+                this.showFlights = false;
+                this.showReturnFlights = false;
+                this.selectedIndexD = null;
+                this.selectedIndexA = null;
+
+                const formData = new FormData();
+                formData.append('origin', this.from.substring(this.from.length - 3 - 1, this.from.length - 1));
+                formData.append('destination', this.to.substring(this.to.length - 3 - 1, this.to.length - 1));
+                formData.append('departure', this.departDate);
+                formData.append('arrival', this.returnDate);
+                formData.append('adults',  this.adults);
+                formData.append('children', this.childrens);
+                formData.append('infants', this.infants);
+                formData.append('tripType', this.tripType);
+                formData.append('class', this.classType);
+
+                  // Make API request using Axios
+                  axios.post('search.php', formData)
+                    .then(response => {
+                      // Handle successful response
+                      console.log(response.data);
+                      //console.log(response.data.Response.ResponseStatus);
+                      if(response.data.Response.ResponseStatus == 1){
+
+                        if(this.tripType == 1){
+                        this.flights = response.data.Response.Results[0];
+                        this.showFlights = true;
+                        }
+
+
+                        if(this.tripType == 2){
+                        this.flights1 = response.data.Response.Results[0];
+                        this.flights2 = response.data.Response.Results[1];
+                        this.showReturnFlights = true;
+                        }
+                        
+                      }
+                      this.loading = false;
+                      
+                    })
+                    .catch(error => {
+                      // Handle error
+                      console.error('Error:', error);
+                    });
+            }
+        }
+    });
+
+    app.mount('#app');
+</script>
+</body>
+</html>
